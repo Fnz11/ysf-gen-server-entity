@@ -1,0 +1,30 @@
+// ========== Import ==========
+import { Router } from "express";
+import {{entityName}}Controller from "../controllers/{{entityName}}.controller";
+import { upload } from "../utils/multer.utils";
+{{#if protectionConfig}}import authMiddleware from '../middleware/auth.middleware';
+import { Role } from "@prisma/client";{{/if}}
+
+// ========== Router ==========
+const router = Router();
+
+// ========== Routes ==========
+
+// GET
+router.get("/", {{#if protectionConfig.getAll}}authMiddleware([ {{#each protectionConfig.getAll}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.getAll);
+router.get("/:id", {{#if protectionConfig.getById}}authMiddleware([ {{#each protectionConfig.getById}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.getById);
+router.get("/download/:template", {{#if protectionConfig.download}}authMiddleware([ {{#each protectionConfig.download}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.download);
+
+// POST
+router.post("/", {{#if protectionConfig.create}}authMiddleware([ {{#each protectionConfig.create}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.create);
+router.post("/batch", {{#if protectionConfig.createBatch}}authMiddleware([ {{#each protectionConfig.createBatch}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} upload.single("file"), {{entityName}}Controller.createBatch);
+router.post("/delete/batch", {{#if protectionConfig.deleteBatch}}authMiddleware([ {{#each protectionConfig.deleteBatch}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.deleteBatch);
+
+// PATCH
+router.patch("/:id", {{#if protectionConfig.update}}authMiddleware([ {{#each protectionConfig.update}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.update);
+
+// DELETE
+router.delete("/:id", {{#if protectionConfig.delete}}authMiddleware([ {{#each protectionConfig.delete}}Role.{{this}}{{#unless @last}},{{/unless}}{{/each}} ]),{{/if}} {{entityName}}Controller.delete);
+
+// ========== Exports ==========
+export default router;

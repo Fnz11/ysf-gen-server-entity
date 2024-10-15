@@ -1,0 +1,252 @@
+// ========== Import ==========
+import prisma from "../utils/prisma.utils";
+import ResponseError from "../error/response.error";
+import {
+  Mutate{{entityNameCap}}Props,
+  mutate{{entityNameCap}}Schema,
+} from "../validators/{{entityName}}.validator";
+import * as XLSX from "xlsx";
+import { Workbook } from "exceljs";
+import {
+  handleCreateBatch,
+  handleDelete,
+  handleDeleteBatch,
+  handleDownload,
+  handleGetById,
+  handleMutate,
+} from "../utils/service.utils";
+import { uploadImage } from "../utils/cloudinary.utils";
+
+// ========== Init ==========
+
+const {{entityNameCap}} = prisma.{{entityName}};
+
+// ========== Services ==========
+class {{entityNameCap}}Services {
+  private static readonly NAME = "{{entityName}}";
+
+  // GET ALL
+  static async getAll({
+    offset, 
+    limit, 
+    {{#each fieldsFilter}} 
+    {{key}}, 
+    {{/each}} 
+  }: {
+    offset?: string | null;
+    limit?: string | null; 
+    {{#each fieldsFilter}}
+    {{key}}?: string | null;
+    {{/each}} 
+  }) { 
+    const pageOffset = offset ? parseInt(offset, 10) : 0;
+    const pageLimit = limit ? parseInt(limit, 10) : 10;
+
+    const query: any = {};  
+
+    // Create an array for AND conditions
+    const andConditions = [];
+
+    {{#each fieldsFilter}}
+    // Check if '{{key}}' exists and add to AND conditions
+    if ({{key}} {{#if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
+      {{#if (eq type "number")}}andConditions.push({ {{#if (startsWith key "min_")}} {{replace key "min_" ""}}: { gte: parseInt({{key}}) } {{else if (startsWith key "max_")}} {{replace key "max_" ""}}: { lte: parseInt({{key}}) } {{else}} {{key}}: parseInt({{key}}) {{/if}} });
+      {{/if}}{{#if (eq type "boolean")}}andConditions.push({ {{key}}: {{key}} === "true" });
+      {{/if}}{{#if (eq type "Date")}}andConditions.push({ {{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else}}{{replace key "end_" ""}}{{/if}}: { {{#if (startsWith key "start_")}}gte{{else}}lte{{/if}}: new Date({{key}}) } });
+      {{/if}}{{#if (eq type "string")}}andConditions.push({ {{key}}: { contains: {{key}}?.toString()?.trim() } });
+      {{/if}}
+    } 
+    {{/each}} 
+
+    // If we have any AND conditions, assign them to the query
+    if (andConditions?.length > 0) {
+      query.AND = andConditions;
+    }
+
+    const totalData = await {{entityNameCap}}.count({
+      where: query,
+    });
+
+    const {{entityName}} = await {{entityNameCap}}.findMany({
+      where: query,
+      skip: pageOffset,
+      take: pageLimit{{#if isIncluded}},
+      include: {
+        {{#each includedEntities}}
+        {{this}}: true,
+        {{/each}} }
+      {{/if}} }); 
+
+    return {
+      status: 200,
+      message: "Success get all {{entityName}}",
+      data: {
+        {{entityName}},
+        totalData,
+      },
+    };
+  }
+
+  // GET BY ID
+  static async getById(id: string) {
+    return await handleGetById({
+      id: {{#if (eq idType "number")}}parseInt(id){{else}}id{{/if}},
+      findService: (id: string | number) => 
+        {{entityNameCap}}.findUnique({ 
+          where: { {{ idName }}: {{#if (eq idType "number")}} id as number, {{else}} id as string, {{/if}} } {{#if isIncluded}},
+          include: {
+            {{#each includedEntities}}
+            {{this}}: true,
+            {{/each}} 
+          } {{/if}}
+        }),
+      name: this.NAME,
+    });
+  }
+
+  // CREATE
+  static async create(data: Mutate{{entityNameCap}}Props) {
+    return await handleMutate({
+      data,
+      name: this.NAME,
+      schema: mutate{{entityNameCap}}Schema,
+      type: "create",
+      mutateService: async (params: { id?: string | number; data: any }) => {
+          const { data } = params;
+
+          {{#each imageFields}}
+          let {{name}}: any = null;
+          if (
+            data.{{name}} !== undefined &&
+            typeof data.{{name}} == "string" && 
+            data.post_images?.length > 0
+          ) {
+            const image = await uploadImage({
+              image: data.{{name}},
+              folder: "posts/image",
+            });
+            if (image) {
+              {{name}} = {
+                url: image.url,
+                public_id: image.public_id,
+              };
+              delete (data as any)?.post_images;
+            }
+          }
+          {{/each}}
+
+          return await {{ entityNameCap }}.create({
+          data: {
+            ...data,
+            {{#each imageFields}}
+            ...({{name}} && {
+              {{name}}: {
+                create: {
+                  url: {{name}}.url,
+                  public_id: {{name}}.public_id,
+                },
+              },
+            }),
+            {{/each}}
+          }
+         })
+        },
+    });
+  }
+
+  // CREATE BATCH
+  static async createBatch(file: Express.Multer.File) {
+    return await handleCreateBatch({
+      file,
+      header: [{{#each headerXlsx}} {{#if (or (or (eq key "created_at") (eq key "updated_at")) isId) }}{{else}}"{{key}}",{{/if}} {{/each}}],
+      createService: (data: any) => this.create(data),
+      handleAddData: (item: any, index: number) => {
+        return {
+          ...item,{{#each headerXlsx }}
+          {{#if (or (or (eq key "created_at") (eq key "updated_at")) isId) }}{{else if (eq type "number") }}{{key}}: parseInt(item?.{{key}} as string),{{else if (eq type "string")}}{{key}}: item?.{{key}}?.toString(),{{else if (eq type "Date")}}{{key}}: new Date(item?.{{key}}),{{/if}}{{/each}}
+        }
+      },
+    });
+  }
+
+  // UPDATE
+  static async update(id: string, data: Mutate{{entityNameCap}}Props) {
+    return await handleMutate({
+      data,
+      id: {{#if (eq idType "number")}}parseInt(id){{else}}id{{/if}},
+      findService: (id: string | number) => 
+        {{entityNameCap}}.findUnique({ 
+          where: { {{idName}}: id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} } 
+        }),
+      name: this.NAME,
+      schema: mutate{{entityNameCap}}Schema,
+      type: "update",
+      mutateService: (params: { id?: string | number; data: any }) =>
+        {{entityNameCap}}.update({
+          where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
+          data: params.data,
+        }),
+    });
+  }
+
+  // DELETE
+  static async delete(id: string) {
+    return await handleDelete({
+      id: {{#if (eq idType "number")}}parseInt(id){{else}}id{{/if}},
+      name: this.NAME,
+      findService: (id: string | number) =>
+        {{entityNameCap}}.findUnique({ 
+          where: { {{idName}}: id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} }
+        }),
+      deleteService: (id: string | number) => 
+        {{entityNameCap}}.delete({ 
+          where: { {{idName}}: id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} }
+        }),
+      bukuCondition: true,
+    });
+  }
+
+  // DELETE BATCH
+  static async deleteBatch(ids: string[]) {
+    return await handleDeleteBatch({
+      ids,
+      deleteService: async (id: string) => await this.delete(id),
+      name: this.NAME,
+    });
+  }
+
+  // DOWNLOAD
+  static async download(template: boolean = false) {
+    // Create a new Excel workbook and worksheet
+    const workbook = new Workbook();
+    const columns = [
+      {{#each headerXlsx}}
+      {header: "{{header}}", key: "{{key}}", width: {{width}} },
+      {{/each}}
+    ];
+    const columnsTemplate = [
+      {{#each headerXlsx}}
+      {{#if (or (or (eq key "created_at") (eq key "updated_at")) isId) }}
+      {{else}}{header: "{{header}}", key: "{{key}}", width: {{width}} },
+      {{/if}}{{/each}}
+    ];
+
+    return handleDownload({
+      name: this.NAME,
+      template,
+      columnsTemplate,
+      columns,
+      workbook,
+      handleAddRow: (worksheet: XLSX.WorkSheet, item: any, index: number) => {
+        worksheet.addRow(item);
+      },
+
+      getAllService: async () => {
+        const result = await this.getAll({ offset: null, limit: "10000" });
+        return result.data.{{entityName}};
+      },
+    });
+  }
+}
+
+export default {{entityNameCap}}Services;

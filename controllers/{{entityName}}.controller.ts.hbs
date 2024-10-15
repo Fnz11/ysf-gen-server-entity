@@ -1,0 +1,127 @@
+// ========== Import ==========
+import { NextFunction, Request, Response } from "express";
+import {{entityNameCap}}Services from "../services/{{entityName}}.service";
+import { ResponseProps } from "../types/general.types";
+import { Mutate{{entityNameCap}}Props } from "../validators/{{entityName}}.validator";
+
+// ========== Controllers ==========
+class {{entityNameCap}}Controller {
+  // GET ALL
+  async getAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { offset, limit, {{#each fieldsFilter}} {{key}}, {{/each}}  } = req.query;
+      const result = await {{entityNameCap}}Services.getAll({
+        offset: (offset as string) || null,
+        limit: (limit as string) || null,{{#each fieldsFilter}}
+        {{key}}: ({{ key }} as string) || null,{{/each}} 
+      });
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET BY ID
+  async getById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await {{entityNameCap}}Services.getById(id);
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // CREATE
+  async create(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = req.body as Mutate{{entityNameCap}}Props;
+      const result = await {{entityNameCap}}Services.create(data);
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // CREATE BATCH
+  async createBatch(req: Request, res: Response, next: NextFunction) {
+    console.log("PAPAPAP", req.file, req.body);
+    if (!req.file) {
+      return res.status(400).json({
+        status: 400,
+        data: null,
+        message: "Tidak ada file yang diupload",
+      });
+    }
+    try {
+      const result = (await {{entityNameCap}}Services.createBatch(req.file)) as ResponseProps;
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // UPDATE
+  async update(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const data = req.body as Mutate{{entityNameCap}}Props;
+      console.log("weipfjiwejf", data);
+
+      const result = await {{entityNameCap}}Services.update(id, data);
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // DOWNLOAD
+  async download(req: Request, res: Response, next: NextFunction) {
+    const { template } = req.params;
+    try {
+      const result = await {{entityNameCap}}Services.download(
+        template == "template" ? true : false
+      );
+      if (result.success) {
+        res.setHeader(
+          "Content-Type",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+          "Content-Disposition",
+          "attachment; filename={{entityName}}-data.xlsx"
+        );
+        await result.workbook.xlsx.write(res);
+        res.status(200).end();
+      } else {
+        next(result);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // DELETE
+  async delete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = (await {{entityNameCap}}Services.delete(id)) as ResponseProps;
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // DELETE BATCH
+  async deleteBatch(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { ids } = req.body;
+      const result = (await {{entityNameCap}}Services.deleteBatch(ids)) as ResponseProps;
+      res.status(result.status).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new {{entityNameCap}}Controller();
