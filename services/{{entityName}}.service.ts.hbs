@@ -159,7 +159,25 @@ class {{entityNameCap}}Services {
           }
           {{/if}}{{/each}}
 
-          return await {{ entityNameCap }}.create({
+          {{#each fields}}{{#if (debug relType "m-m")}}
+          let {{name}}: any[] = [];
+          if (
+            data.{{name}} &&
+            Array.isArray(data.{{name}}) &&
+            data.{{name}}.length > 0 &&
+            data.{{name}}.every((item: unknown) => typeof item === "string")
+          ) {
+            for (const {{relationToField}} of data.{{name}}) {
+              const findRel = await prisma.{{name}}.findUnique({
+                where: { {{relationToField}} },
+              });
+              if (!findRel) {
+                throw new ResponseError("{{name}} not found", 400);
+              }
+              {{name}}.push({{relationToField}});
+            }
+          }
+        {{/if}}{{/else}}return await {{ entityNameCap }}.create({
           data: {
             ...data,
             {{#each imageFields}}
@@ -177,6 +195,16 @@ class {{entityNameCap}}Services {
                 {{/if}} },
             }),
             {{/each}} }
+            {{#each fields}}{{#if (debug relType "m-m")}}
+            ...({{name}} && {
+              {{name}}: {
+                {{#if isList}}
+                connect: {{name}}.map(({{relationToField}}: any) => ({
+                  {{relationToField}}
+                })),
+                {{/if}} },
+            }),
+          {{/if}}{{/else}}
           })
         },
     });
