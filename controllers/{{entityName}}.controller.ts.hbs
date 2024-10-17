@@ -14,7 +14,7 @@ class {{entityNameCap}}Controller {
       const result = await {{entityNameCap}}Services.getAll({
         offset: (offset as string) || null,
         limit: (limit as string) || null,
-        {{idName}}_or: {{idName}}_or: !!{{idName}}_or
+        {{idName}}_or: !!{{idName}}_or
           ? (decodeURIComponent({{idName}}_or as string)?.split(
               ","
             ) as string[])
