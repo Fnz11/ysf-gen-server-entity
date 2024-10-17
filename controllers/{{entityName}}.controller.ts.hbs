@@ -12,7 +12,7 @@ class {{entityNameCap}}Controller {
       const { offset, limit, {{#each fieldsFilter}}  {{#if (eq type "unknown")}}{{else}} {{key}}, {{/if}} {{/each}}  } = req.query;
       const result = await {{entityNameCap}}Services.getAll({
         offset: (offset as string) || null,
-        limit: (limit as string) || null,{{#each fieldsFilter}} {{#each fieldsFilter}}
+        limit: (limit as string) || null,{{#each fieldsFilter}} {{#if (eq type "unknown")}}{{else}}
         {{key}}: ({{ key }} as string) || null,{{/if}}{{/each}} 
       });
       res.status(result.status).json(result);
