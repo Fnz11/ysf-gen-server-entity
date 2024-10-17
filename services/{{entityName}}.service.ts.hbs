@@ -119,7 +119,7 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           {{#if isList}}
-          let {{name}}: string[] = [];
+          let {{name}}: any[] = [];
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -214,7 +214,7 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           {{#if isList}}
-          let {{name}}: string[] = [];
+          let {{name}}: any[] = [];
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
