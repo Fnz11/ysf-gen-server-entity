@@ -29,25 +29,37 @@ class {{entityNameCap}}Services {
   static async getAll({
     offset, 
     limit, 
+    {{idName}}_or,
     {{#each fieldsFilter}} 
     {{#if (eq type "unknown")}}{{else}}
-    {{key}}, 
-    {{/if}}{{/each}} 
+    {{key}}, {{/if}}
+    {{/each}} 
   }: {
     offset?: string | null;
     limit?: string | null; 
+    {{idName}}_or?: string[] | null;
     {{#each fieldsFilter}}
     {{#if (eq type "unknown")}}{{else}}
-    {{key}}?: string | null;
-    {{/if}}{{/each}} 
+    {{key}}?: string | null;{{/if}}
+    {{/each}} 
   }) { 
     const pageOffset = offset ? parseInt(offset, 10) : 0;
     const pageLimit = limit ? parseInt(limit, 10) : 10;
 
     const query: any = {};  
 
-    // Create an array for AND conditions
     const andConditions = [];
+    const orConditions: any[] = [];
+
+    if ({{idName}}_or) {
+      {{idName}}_or?.map(({{idName}}) => {
+        orConditions.push({
+          {{idName}}: {
+            contains: {{idName}}{{#if (eq idType "number")}}.toString(){{/if}},
+          },
+        });
+      });
+    }
 
     {{#each fieldsFilter}}
     {{#if (eq type "unknown")}}{{else}}
@@ -61,10 +73,14 @@ class {{entityNameCap}}Services {
     } {{/if}}
     {{/each}} 
 
-    // If we have any AND conditions, assign them to the query
+    // Add AND and OR conditions to query
     if (andConditions?.length > 0) {
       query.AND = andConditions;
+    } 
+    if (orConditions?.length > 0) {
+      query.OR = orConditions;
     }
+    
 
     const totalData = await {{entityNameCap}}.count({
       where: query,
@@ -193,18 +209,18 @@ class {{entityNameCap}}Services {
                   public_id: {{name}}.public_id,
                 },
                 {{/if}} },
-            }),
-            {{/each}} }
-            {{#each fields}}{{#if (debug relType "m-m")}}
-            ...({{name}} && {
-              {{name}}: {
-                {{#if isList}}
-                connect: {{name}}.map(({{relationToField}}: any) => ({
-                  {{relationToField}}
-                })),
-                {{/if}} },
-            }),
-          {{/if}}{{/each}}
+                {{/each}} }
+                {{#each fields}}
+                {{#if (debug relType "m-m")}}
+                ...({{name}} && {
+                  {{name}}: {
+                    {{#if isList}}
+                    connect: {{name}}.map(({{relationToField}}: any) => ({
+                      {{relationToField}}
+                    })),
+                    {{/if}} },
+                }),
+               {{/if}}{{/each}}}),
           })
         },
     });
@@ -283,7 +299,25 @@ class {{entityNameCap}}Services {
           }
           {{/if}}{{/each}}
 
-          return await {{entityNameCap}}.update({
+          {{#each fields}}{{#if (debug relType "m-m")}}
+          let {{name}}: any[] = [];
+          if (
+            data.{{name}} &&
+            Array.isArray(data.{{name}}) &&
+            data.{{name}}.length > 0 &&
+            data.{{name}}.every((item: unknown) => typeof item === "string")
+          ) {
+            for (const {{relationToField}} of data.{{name}}) {
+              const findRel = await prisma.{{name}}.findUnique({
+                where: { {{relationToField}} },
+              });
+              if (!findRel) {
+                throw new ResponseError("{{name}} not found", 400);
+              }
+              {{name}}.push({{relationToField}});
+            }
+          }
+        {{/if}}{{/each}}return await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
             data: {
               ...data,
@@ -301,7 +335,16 @@ class {{entityNameCap}}Services {
                   },
                   {{/if}} },
               }),
-            {{/each}} }
+              {{/each}}
+              {{#each imageFields}}
+              ...({{name}} && {
+                {{name}}: { 
+                  set: {{name}}.map(({{relationToField}}: any) => ({
+                    {{relationToField}},
+                  })), 
+                },
+              }),
+              {{/each}} }
           })
         }
      });
