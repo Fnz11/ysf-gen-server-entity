@@ -193,9 +193,9 @@ class {{entityNameCap}}Services {
               {{name}}.push({{relationToField}});
             }
           
-          delete data.{{name}};
           }
-        {{/if}}{{/each}}return await {{ entityNameCap }}.create({
+        {{/if}}delete data.{{name}};
+        {{/each}}return await {{ entityNameCap }}.create({
           data: {
             ...data,
             {{#each imageFields}}
@@ -319,9 +319,9 @@ class {{entityNameCap}}Services {
               {{name}}.push({{relationToField}});
             }
             
-          delete data.{{name}};
           }
-        {{/if}}{{/each}}return await {{entityNameCap}}.update({
+         {{/if}}delete data.{{name}};
+         {{/each}}return await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
             data: {
               ...data,
