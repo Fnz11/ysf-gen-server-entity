@@ -119,7 +119,7 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           let {{name}}: any = null;
-          {{#if (eq type "unknown")}}
+          {{#if isList}}
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -165,7 +165,7 @@ class {{entityNameCap}}Services {
             {{#each imageFields}}
             ...({{name}} && {
               {{name}}: {
-                {{#if (eq type "unknown")}}
+                {{#if isList}}
                 create: {{name}}.map((img: any) => ({
                   url: img.url,
                   public_id: img.public_id,
@@ -214,7 +214,7 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           let {{name}}: any = null;
-          {{#if (eq type "unknown")}}
+          {{#if isList}}
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -261,7 +261,7 @@ class {{entityNameCap}}Services {
               {{#each imageFields}}
               ...({{name}} && {
                 {{name}}: {
-                  {{#if (eq type "unknown")}}
+                  {{#if isList}}
                   create: {{name}}.map((img: any) => ({
                     url: img.url,
                     public_id: img.public_id,
