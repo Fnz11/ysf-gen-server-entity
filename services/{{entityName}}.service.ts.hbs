@@ -175,7 +175,7 @@ class {{entityNameCap}}Services {
           }
           {{/if}}{{/each}}
 
-          {{#each fields}}{{#if (debug relType "m-m")}}
+          {{#each fields}}{{#if (eq relType "m-m")}}
           let {{name}}: any[] = [];
           if (
             data.{{name}} &&
@@ -211,7 +211,7 @@ class {{entityNameCap}}Services {
                 {{/if}} 
                 {{/each}} 
                 {{#each fields}}
-                {{#if (debug relType "m-m")}}
+                {{#if (eq relType "m-m")}}
                 ...({{name}} && {
                   {{name}}: {
                     {{#if isList}}
@@ -299,7 +299,7 @@ class {{entityNameCap}}Services {
           }
           {{/if}}{{/each}}
 
-          {{#each fields}}{{#if (debug relType "m-m")}}
+          {{#each fields}}{{#if (eq relType "m-m")}}
           let {{name}}: any[] = [];
           if (
             data.{{name}} &&
