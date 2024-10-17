@@ -30,14 +30,16 @@ class {{entityNameCap}}Services {
     offset, 
     limit, 
     {{#each fieldsFilter}} 
+    {{#if isList}}{{else}}
     {{key}}, 
-    {{/each}} 
+    {{/if}}{{/each}} 
   }: {
     offset?: string | null;
     limit?: string | null; 
     {{#each fieldsFilter}}
+    {{#if isList}}{{else}}
     {{key}}?: string | null;
-    {{/each}} 
+    {{/if}}{{/each}} 
   }) { 
     const pageOffset = offset ? parseInt(offset, 10) : 0;
     const pageLimit = limit ? parseInt(limit, 10) : 10;
@@ -49,7 +51,7 @@ class {{entityNameCap}}Services {
 
     {{#each fieldsFilter}}
     // Check if '{{key}}' exists and add to AND conditions
-    if ({{key}} {{#if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
+    if ({{key}}{{#if isList}}{{else if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
       {{#if (eq type "number")}}andConditions.push({ {{#if (startsWith key "min_")}} {{replace key "min_" ""}}: { gte: parseInt({{key}}) } {{else if (startsWith key "max_")}} {{replace key "max_" ""}}: { lte: parseInt({{key}}) } {{else}} {{key}}: parseInt({{key}}) {{/if}} });
       {{/if}}{{#if (eq type "boolean")}}andConditions.push({ {{key}}: {{key}} === "true" });
       {{/if}}{{#if (eq type "Date")}}andConditions.push({ {{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else}}{{replace key "end_" ""}}{{/if}}: { {{#if (startsWith key "start_")}}gte{{else}}lte{{/if}}: new Date({{key}}) } });
@@ -163,7 +165,7 @@ class {{entityNameCap}}Services {
             ...({{name}} && {
               {{name}}: {
                 {{#if isList}}
-                create: {{name}}.map((img) => ({
+                create: {{name}}.map((img: any) => ({
                   url: img.url,
                   public_id: img.public_id,
                 })),
@@ -254,28 +256,24 @@ class {{entityNameCap}}Services {
           return await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
             data: {
-                ...data,
-                {{#each imageFields}}
-                ...({{name}} && {
-                  {{name}}: {
-                    {{#if isList}}
-                    create: {{name}}.map((img) => ({
-                      url: img.url,
-                      public_id: img.public_id,
-                    })),
-                    {{else}}create: {
-                      url: {{name}}.url,
-                      public_id: {{name}}.public_id,
-                    },
-                    {{/if}} },
-                }),
-                {{/each}} }
-              })
-            },
+              ...data,
+              {{#each imageFields}}
+              ...({{name}} && {
+                {{name}}: {
+                  {{#if isList}}
+                  create: {{name}}.map((img: any) => ({
+                    url: img.url,
+                    public_id: img.public_id,
+                  })),
+                  {{else}}create: {
+                    url: {{name}}.url,
+                    public_id: {{name}}.public_id,
+                  },
+                  {{/if}} },
+              }),
+            {{/each}} }
           })
-        },
-    });
-  }
+        }
 
   // DELETE
   static async delete(id: string) {
