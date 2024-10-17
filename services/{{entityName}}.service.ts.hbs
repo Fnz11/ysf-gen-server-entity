@@ -192,6 +192,8 @@ class {{entityNameCap}}Services {
               }
               {{name}}.push({{relationToField}});
             }
+          
+          delete data.{{name}};
           }
         {{/if}}{{/each}}return await {{ entityNameCap }}.create({
           data: {
@@ -316,6 +318,8 @@ class {{entityNameCap}}Services {
               }
               {{name}}.push({{relationToField}});
             }
+            
+          delete data.{{name}};
           }
         {{/if}}{{/each}}return await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
