@@ -30,14 +30,14 @@ class {{entityNameCap}}Services {
     offset, 
     limit, 
     {{#each fieldsFilter}} 
-    {{#if isList}}{{else}}
+    {{#if (or isList (eq type "images"))}}{{else}}
     {{key}}, 
     {{/if}}{{/each}} 
   }: {
     offset?: string | null;
     limit?: string | null; 
     {{#each fieldsFilter}}
-    {{#if isList}}{{else}}
+    {{#if (or isList (eq type "images"))}}{{else}}
     {{key}}?: string | null;
     {{/if}}{{/each}} 
   }) { 
@@ -51,7 +51,7 @@ class {{entityNameCap}}Services {
 
     {{#each fieldsFilter}}
     // Check if '{{key}}' exists and add to AND conditions
-    if ({{key}}{{#if isList}}{{else if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
+    if ({{key}}{{#if (or isList (eq type "images"))}}{{else if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
       {{#if (eq type "number")}}andConditions.push({ {{#if (startsWith key "min_")}} {{replace key "min_" ""}}: { gte: parseInt({{key}}) } {{else if (startsWith key "max_")}} {{replace key "max_" ""}}: { lte: parseInt({{key}}) } {{else}} {{key}}: parseInt({{key}}) {{/if}} });
       {{/if}}{{#if (eq type "boolean")}}andConditions.push({ {{key}}: {{key}} === "true" });
       {{/if}}{{#if (eq type "Date")}}andConditions.push({ {{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else}}{{replace key "end_" ""}}{{/if}}: { {{#if (startsWith key "start_")}}gte{{else}}lte{{/if}}: new Date({{key}}) } });
@@ -118,7 +118,7 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           let {{name}}: any = null;
-          {{#if isList}}
+          {{#if (or isList (eq type "images"))}}
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -164,7 +164,7 @@ class {{entityNameCap}}Services {
             {{#each imageFields}}
             ...({{name}} && {
               {{name}}: {
-                {{#if isList}}
+                {{#if (or isList (eq type "images"))}}
                 create: {{name}}.map((img: any) => ({
                   url: img.url,
                   public_id: img.public_id,
@@ -213,7 +213,7 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           let {{name}}: any = null;
-          {{#if isList}}
+          {{#if (or isList (eq type "images"))}}
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -260,7 +260,7 @@ class {{entityNameCap}}Services {
               {{#each imageFields}}
               ...({{name}} && {
                 {{name}}: {
-                  {{#if isList}}
+                  {{#if (or isList (eq type "images"))}}
                   create: {{name}}.map((img: any) => ({
                     url: img.url,
                     public_id: img.public_id,
@@ -274,6 +274,8 @@ class {{entityNameCap}}Services {
             {{/each}} }
           })
         }
+     });
+  }
 
   // DELETE
   static async delete(id: string) {
