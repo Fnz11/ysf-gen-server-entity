@@ -348,7 +348,18 @@ class {{entityNameCap}}Services {
                   })), 
                 },
               }),
-              {{/each}} }
+              {{/each}}
+              {{#each fields}}
+                {{#if (eq relType "m-m")}}
+                ...({{name}} && {
+                  {{name}}: {
+                    {{#if isList}}
+                    set: {{name}}.map(({{relationToField}}: any) => ({
+                      {{relationToField}}
+                    })),
+                    {{/if}} },
+                }),
+               {{/if}}{{/each}} },
           })
         }
      });
