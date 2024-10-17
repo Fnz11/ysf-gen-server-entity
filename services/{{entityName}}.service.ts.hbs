@@ -50,14 +50,15 @@ class {{entityNameCap}}Services {
     const andConditions = [];
 
     {{#each fieldsFilter}}
+    {{#if (eq type "unknown")}}{{else}}
     // Check if '{{key}}' exists and add to AND conditions
-    if ({{key}}{{#if (eq type "unknown")}}{{else if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
+    if ({{key}}{{#if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
       {{#if (eq type "number")}}andConditions.push({ {{#if (startsWith key "min_")}} {{replace key "min_" ""}}: { gte: parseInt({{key}}) } {{else if (startsWith key "max_")}} {{replace key "max_" ""}}: { lte: parseInt({{key}}) } {{else}} {{key}}: parseInt({{key}}) {{/if}} });
       {{/if}}{{#if (eq type "boolean")}}andConditions.push({ {{key}}: {{key}} === "true" });
       {{/if}}{{#if (eq type "Date")}}andConditions.push({ {{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else}}{{replace key "end_" ""}}{{/if}}: { {{#if (startsWith key "start_")}}gte{{else}}lte{{/if}}: new Date({{key}}) } });
       {{/if}}{{#if (eq type "string")}}andConditions.push({ {{key}}: { contains: {{key}}?.toString()?.trim() } });
       {{/if}}
-    } 
+    } {{/if}}
     {{/each}} 
 
     // If we have any AND conditions, assign them to the query
