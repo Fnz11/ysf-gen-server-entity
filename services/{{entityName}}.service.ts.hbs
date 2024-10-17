@@ -177,7 +177,7 @@ class {{entityNameCap}}Services {
               {{name}}.push({{relationToField}});
             }
           }
-        {{/if}}{{/else}}return await {{ entityNameCap }}.create({
+        {{/if}}{{/each}}return await {{ entityNameCap }}.create({
           data: {
             ...data,
             {{#each imageFields}}
@@ -204,7 +204,7 @@ class {{entityNameCap}}Services {
                 })),
                 {{/if}} },
             }),
-          {{/if}}{{/else}}
+          {{/if}}{{/each}}
           })
         },
     });
