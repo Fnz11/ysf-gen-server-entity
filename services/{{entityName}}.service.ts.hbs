@@ -116,24 +116,45 @@ class {{entityNameCap}}Services {
 
           {{#each imageFields}}
           let {{name}}: any = null;
-          if (
+          {{#if isList}}
+           if (
+            data.{{name}} !== undefined &&
+            Array.isArray(data.{{name}}) &&
+            data.{{name}}.every((item: unknown) => typeof item === "string") &&
+            data.{{name}}.length > 0
+          ) {
+            for (const image of data.{{name}}) {
+              const uploadedImage = await uploadImage({
+                image: image,
+                folder: "{{name}}/image",
+              });
+              if (uploadedImage) {
+                {{name}}.push({
+                  url: uploadedImage.url,
+                  public_id: uploadedImage.public_id,
+                });
+              }
+            }
+            delete (data as any)?.{{name}};
+          }
+          {{else}}if (
             data.{{name}} !== undefined &&
             typeof data.{{name}} == "string" && 
             data.post_images?.length > 0
           ) {
             const image = await uploadImage({
               image: data.{{name}},
-              folder: "posts/image",
+              folder: "{{name}}/image",
             });
             if (image) {
               {{name}} = {
                 url: image.url,
                 public_id: image.public_id,
               };
-              delete (data as any)?.post_images;
+              delete (data as any)?.{{name}};
             }
           }
-          {{/each}}
+          {{/if}}{{/each}}
 
           return await {{ entityNameCap }}.create({
           data: {
@@ -141,15 +162,19 @@ class {{entityNameCap}}Services {
             {{#each imageFields}}
             ...({{name}} && {
               {{name}}: {
-                create: {
+                {{#if isList}}
+                create: {{name}}.map((img) => ({
+                  url: img.url,
+                  public_id: img.public_id,
+                })),
+                {{else}}create: {
                   url: {{name}}.url,
                   public_id: {{name}}.public_id,
                 },
-              },
+                {{/if}}},
             }),
-            {{/each}}
-          }
-         })
+            {{/each}} }
+          })
         },
     });
   }
@@ -181,11 +206,74 @@ class {{entityNameCap}}Services {
       name: this.NAME,
       schema: mutate{{entityNameCap}}Schema,
       type: "update",
-      mutateService: (params: { id?: string | number; data: any }) =>
-        {{entityNameCap}}.update({
-          where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
-          data: params.data,
-        }),
+      mutateService: async (params: { id?: string | number; data: any }) => {
+          const { data } = params;
+
+          {{#each imageFields}}
+          let {{name}}: any = null;
+          {{#if isList}}
+           if (
+            data.{{name}} !== undefined &&
+            Array.isArray(data.{{name}}) &&
+            data.{{name}}.every((item: unknown) => typeof item === "string") &&
+            data.{{name}}.length > 0
+          ) {
+            for (const image of data.{{name}}) {
+              const uploadedImage = await uploadImage({
+                image: image,
+                folder: "{{name}}/image",
+              });
+              if (uploadedImage) {
+                {{name}}.push({
+                  url: uploadedImage.url,
+                  public_id: uploadedImage.public_id,
+                });
+              }
+            }
+            delete (data as any)?.{{name}};
+          }
+          {{else}}if (
+            data.{{name}} !== undefined &&
+            typeof data.{{name}} == "string" && 
+            data.post_images?.length > 0
+          ) {
+            const image = await uploadImage({
+              image: data.{{name}},
+              folder: "{{name}}/image",
+            });
+            if (image) {
+              {{name}} = {
+                url: image.url,
+                public_id: image.public_id,
+              };
+              delete (data as any)?.{{name}};
+            }
+          }
+          {{/if}}{{/each}}
+
+          return await {{entityNameCap}}.update({
+            where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
+            data: {
+                ...data,
+                {{#each imageFields}}
+                ...({{name}} && {
+                  {{name}}: {
+                    {{#if isList}}
+                    create: {{name}}.map((img) => ({
+                      url: img.url,
+                      public_id: img.public_id,
+                    })),
+                    {{else}}create: {
+                      url: {{name}}.url,
+                      public_id: {{name}}.public_id,
+                    },
+                    {{/if}}},
+                }),
+                {{/each}} }
+              })
+            },
+          })
+        },
     });
   }
 
