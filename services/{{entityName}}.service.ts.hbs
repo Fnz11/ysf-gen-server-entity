@@ -118,8 +118,8 @@ class {{entityNameCap}}Services {
           const { data } = params;
 
           {{#each imageFields}}
-          let {{name}}: any = null;
           {{#if isList}}
+          let {{name}}: string[] = [];
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -140,7 +140,7 @@ class {{entityNameCap}}Services {
             }
             delete (data as any)?.{{name}};
           }
-          {{else}}if (
+          {{else}}let {{name}}: any = null;
             data.{{name}} !== undefined &&
             typeof data.{{name}} == "string" && 
             data.post_images?.length > 0
@@ -213,8 +213,8 @@ class {{entityNameCap}}Services {
           const { data } = params;
 
           {{#each imageFields}}
-          let {{name}}: any = null;
           {{#if isList}}
+          let {{name}}: string[] = [];
            if (
             data.{{name}} !== undefined &&
             Array.isArray(data.{{name}}) &&
@@ -235,7 +235,8 @@ class {{entityNameCap}}Services {
             }
             delete (data as any)?.{{name}};
           }
-          {{else}}if (
+          {{else}}let {{name}}: any = null;
+          if (
             data.{{name}} !== undefined &&
             typeof data.{{name}} == "string" && 
             data.post_images?.length > 0
