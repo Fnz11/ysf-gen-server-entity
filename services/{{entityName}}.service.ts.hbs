@@ -235,7 +235,7 @@ class {{entityNameCap}}Services {
                 }),
               {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
                 ...({{name}} && {
-                  {{relationFromField}}: {
+                  {{name}}: {
                     connect: {
                       {{relationToField}}: {{name}},
                     },
@@ -394,7 +394,7 @@ class {{entityNameCap}}Services {
                 }),
                 {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
                 ...({{name}} && {
-                  {{relationFromField}}: {
+                  {{name}}: {
                     connect: {
                       {{relationToField}}: {{name}},
                     },
