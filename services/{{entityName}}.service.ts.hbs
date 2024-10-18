@@ -193,8 +193,24 @@ class {{entityNameCap}}Services {
             }
           }
           delete data.{{name}}; 
+          {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
+          let {{name}}: any = null;
+          if (
+            data.{{name}} &&
+            typeof data.{{name}} === "string"
+          ) {
+            const findRel = await prisma.{{name}}.findUnique({
+              where: { {{relationToField}}: data.{{name}} },
+            });
+            if (!findRel) {
+              throw new ResponseError("{{name}} not found", 400);
+            }
+            {{name}} = { {{relationToField}}: data.{{name}} };
+          }
+          delete data.{{name}};
           {{/if}}
-          {{/each}}return await {{ entityNameCap }}.create({
+          {{/each}}
+          return await {{ entityNameCap }}.create({
           data: {
             ...data,
             {{#each imageFields}}
@@ -212,16 +228,28 @@ class {{entityNameCap}}Services {
                 {{/if}} 
                 {{/each}} 
                 {{#each fields}}
-                {{#if (eq relType "m-m")}}
+                {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
                 ...({{name}} && {
                   {{name}}: {
                     {{#if isList}}
                     connect: {{name}}.map(({{relationToField}}: any) => ({
                       {{relationToField}}
                     })),
-                    {{/if}} },
+                    {{/if}} 
+                  },
                 }),
-               {{/if}}{{/each}} },
+              {{else if}}
+              ...({{name}} && {
+                {{name}}: {
+                  {{#if isList}}
+                  connect: { {{relationToField}}: {{name}} },
+                  {{else}}connect: { {{relationToField}}: {{name}} },
+                  {{/if}} 
+                },
+              }),
+              {{/if}}
+              {{/each}}
+            },
           })
         },
     });
@@ -319,8 +347,24 @@ class {{entityNameCap}}Services {
             }
           }
           delete data.{{name}}; 
+          {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
+          let {{name}}: any = null;
+          if (
+            data.{{name}} &&
+            typeof data.{{name}} === "string"
+          ) {
+            const findRel = await prisma.{{name}}.findUnique({
+              where: { {{relationToField}}: data.{{name}} },
+            });
+            if (!findRel) {
+              throw new ResponseError("{{name}} not found", 400);
+            }
+            {{name}} = { {{relationToField}}: data.{{name}} };
+          }
+          delete data.{{name}};
           {{/if}}
-         {{/each}}return await {{entityNameCap}}.update({
+          {{/each}}
+          return await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
             data: {
               ...data,
@@ -349,16 +393,28 @@ class {{entityNameCap}}Services {
               }),
               {{/each}}
               {{#each fields}}
-                {{#if (eq relType "m-m")}}
+                {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
                 ...({{name}} && {
                   {{name}}: {
                     {{#if isList}}
                     set: {{name}}.map(({{relationToField}}: any) => ({
                       {{relationToField}}
                     })),
-                    {{/if}} },
+                    {{/if}} 
+                  },
                 }),
-               {{/if}}{{/each}} },
+              {{else if}}
+              ...({{name}} && {
+                {{name}}: {
+                  {{#if isList}}
+                  set: { {{relationToField}}: {{name}} },
+                  {{else}}set: { {{relationToField}}: {{name}} },
+                  {{/if}} 
+                },
+              }),
+              {{/if}}
+              {{/each}}
+              },
           })
         }
      });
