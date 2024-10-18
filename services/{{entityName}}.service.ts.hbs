@@ -373,16 +373,7 @@ class {{entityNameCap}}Services {
                   },
                   {{/if}} },
               }),
-              {{/each}}
-              {{#each imageFields}}
-              ...({{name}} && {
-                {{name}}: { 
-                  set: {{name}}.map(({{relationToField}}: any) => ({
-                    {{relationToField}},
-                  })), 
-                },
-              }),
-              {{/each}}
+              {{/each}} 
               {{#each fields}}
                 {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
                 ...({{name}} && {
