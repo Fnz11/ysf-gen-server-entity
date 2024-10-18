@@ -238,7 +238,7 @@ class {{entityNameCap}}Services {
                     {{/if}} 
                   },
                 }),
-              {{else if}}
+              {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
               ...({{name}} && {
                 {{name}}: {
                   {{#if isList}}
@@ -403,16 +403,16 @@ class {{entityNameCap}}Services {
                     {{/if}} 
                   },
                 }),
-              {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
-              ...({{name}} && {
-                {{name}}: {
-                  {{#if isList}}
-                  set: { {{relationToField}}: {{name}} },
-                  {{else}}set: { {{relationToField}}: {{name}} },
-                  {{/if}} 
-                },
-              }),
-              {{/if}}
+                {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
+                ...({{name}} && {
+                  {{name}}: {
+                    {{#if isList}}
+                    set: { {{relationToField}}: {{name}} },
+                    {{else}}set: { {{relationToField}}: {{name}} },
+                    {{/if}} 
+                  },
+                }),
+                {{/if}}
               {{/each}}
               },
           })
