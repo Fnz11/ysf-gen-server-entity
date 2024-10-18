@@ -15,7 +15,7 @@ import {
   handleGetById,
   handleMutate,
 } from "../utils/service.utils";
-import { uploadImage } from "../utils/cloudinary.utils";
+import { deleteImage, uploadImage } from "../utils/cloudinary.utils";
 
 // ========== Init ==========
 
@@ -192,8 +192,7 @@ class {{entityNameCap}}Services {
               }
               {{name}}.push({{relationToField}});
             }
-          }
-          delete data.{{name}}; 
+          } 
           {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
           let {{name}}: any = null;
           if (
@@ -203,8 +202,8 @@ class {{entityNameCap}}Services {
             {{name}} = data.{{name}};
           }
           delete data.{{relationFromField}}; 
-          delete data.{{name}};
           {{/if}}
+          delete data.{{name}};
           {{/each}}
           return await {{ entityNameCap }}.create({
           data: {
@@ -319,8 +318,8 @@ class {{entityNameCap}}Services {
                 url: image.url,
                 public_id: image.public_id,
               };
-              delete (data as any)?.{{name}};
             }
+            delete (data as any)?.{{name}};
           }
           {{/if}}{{/each}}
 
@@ -355,7 +354,24 @@ class {{entityNameCap}}Services {
           delete data.{{name}};
           {{/if}}
           {{/each}}
-          return await {{entityNameCap}}.update({
+
+          {{#each imageFields}}
+          let prev_{{name}};
+          {{#if isList}}
+          if ({{name}}?.length > 0) {
+          {{else}}
+          if ({{name}}) {
+            {{/if}}
+            prevImages = await Posts.findUnique({
+              where: { {{../idName}}: params.id {{#if (eq ../idType "number")}} as number, {{else}} as string, {{/if}} },
+              select: {
+                {{mame}}: true,
+              },
+            });
+          }
+          {{/each}}
+
+          const res = await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
             data: {
               ...data,
@@ -376,13 +392,11 @@ class {{entityNameCap}}Services {
               {{/each}} 
               {{#each fields}}
                 {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
-                ...({{name}} && {
+                ...({{name}}.length > 0 && {
                   {{name}}: {
-                    {{#if isList}}
                     set: {{name}}.map(({{relationToField}}: any) => ({
                       {{relationToField}}
                     })),
-                    {{/if}} 
                   },
                 }),
                 {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
@@ -396,9 +410,24 @@ class {{entityNameCap}}Services {
                 {{/if}}
               {{/each}}
               },
-          })
-        }
-     });
+            })
+
+            {{#each imageFields}}
+            {{#if isList}}
+            if ({{name}}?.length > 0) {
+            {{else}}
+            if ({{name}}) {
+            {{/if}}
+              await deleteImage(
+                prev_{{name}}?.{{name}}
+                  .flatMap((img) => img.public_id)
+                  .filter((id): id is string => id !== null) ?? []
+              );
+            }
+            {{/each}}
+            return res;
+          }
+      });
   }
 
   // DELETE
