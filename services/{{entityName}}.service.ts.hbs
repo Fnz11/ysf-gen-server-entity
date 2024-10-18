@@ -198,7 +198,9 @@ class {{entityNameCap}}Services {
             data.{{name}} &&
             typeof data.{{name}} === "string"
           ) {
-            {{relationFromField}} = data.{{name}};
+            data.{{relationFromField}} = data.{{name}};
+          } else {
+            delete data.{{relationFromField}};
           }
           delete data.{{name}};
           {{/if}}
@@ -336,7 +338,9 @@ class {{entityNameCap}}Services {
             data.{{name}} &&
             typeof data.{{name}} === "string"
           ) {
-            {{relationFromField}} = data.{{name}};
+            data.{{relationFromField}} = data.{{name}};
+          } else {
+            delete data.{{relationFromField}};
           }
           delete data.{{name}};
           {{/if}}
