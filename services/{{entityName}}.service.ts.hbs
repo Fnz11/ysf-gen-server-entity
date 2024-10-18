@@ -194,14 +194,14 @@ class {{entityNameCap}}Services {
           }
           delete data.{{name}}; 
           {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
+          let {{name}}: any = null;
           if (
             data.{{name}} &&
             typeof data.{{name}} === "string"
           ) {
-            data.{{relationFromField}} = data.{{name}};
-          } else {
-            delete data.{{relationFromField}};
+            {{name}} = data.{{name}};
           }
+          delete data.{{relationFromField}}; 
           delete data.{{name}};
           {{/if}}
           {{/each}}
@@ -220,10 +220,10 @@ class {{entityNameCap}}Services {
                   url: {{name}}.url,
                   public_id: {{name}}.public_id,
                 },
-                {{/if}} 
-                {{/each}} 
-                {{#each fields}}
-                {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
+              {{/if}} 
+              {{/each}} 
+              {{#each fields}}
+              {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
                 ...({{name}} && {
                   {{name}}: {
                     {{#if isList}}
@@ -231,6 +231,14 @@ class {{entityNameCap}}Services {
                       {{relationToField}}
                     })),
                     {{/if}} 
+                  },
+                }),
+              {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
+                ...({{name}} && {
+                  {{relationFromField}}: {
+                    connect: {
+                      {{relationToField}}: {{name}},
+                    },
                   },
                 }),
               {{/if}}
@@ -334,14 +342,14 @@ class {{entityNameCap}}Services {
           }
           delete data.{{name}}; 
           {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
+          let {{name}}: any = null;
           if (
             data.{{name}} &&
             typeof data.{{name}} === "string"
           ) {
-            data.{{relationFromField}} = data.{{name}};
-          } else {
-            delete data.{{relationFromField}};
+            {{name}} = data.{{name}};
           }
+          delete data.{{relationFromField}}; 
           delete data.{{name}};
           {{/if}}
           {{/each}}
@@ -384,6 +392,14 @@ class {{entityNameCap}}Services {
                     {{/if}} 
                   },
                 }),
+                {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
+                ...({{name}} && {
+                  {{relationFromField}}: {
+                    connect: {
+                      {{relationToField}}: {{name}},
+                    },
+                  },
+                }), 
                 {{/if}}
               {{/each}}
               },
