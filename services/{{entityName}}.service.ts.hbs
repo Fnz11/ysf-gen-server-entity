@@ -379,6 +379,7 @@ class {{entityNameCap}}Services {
               ...({{name}} && {
                 {{name}}: {
                   {{#if isList}}
+                  set: [],
                   create: {{name}}.map((img: any) => ({
                     url: img.url,
                     public_id: img.public_id,
