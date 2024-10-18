@@ -362,10 +362,10 @@ class {{entityNameCap}}Services {
           {{else}}
           if ({{name}}) {
             {{/if}}
-            prevImages = await Posts.findUnique({
+            prev_{{name}} = await Posts.findUnique({
               where: { {{../idName}}: params.id {{#if (eq ../idType "number")}} as number, {{else}} as string, {{/if}} },
               select: {
-                {{mame}}: true,
+                {{name}}: true,
               },
             });
           }
