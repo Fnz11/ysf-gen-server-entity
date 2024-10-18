@@ -157,6 +157,7 @@ class {{entityNameCap}}Services {
             delete (data as any)?.{{name}};
           }
           {{else}}let {{name}}: any = null;
+          if (
             data.{{name}} !== undefined &&
             typeof data.{{name}} == "string" && 
             data.post_images?.length > 0
@@ -220,29 +221,30 @@ class {{entityNameCap}}Services {
                   url: {{name}}.url,
                   public_id: {{name}}.public_id,
                 },
-              {{/if}} 
-              {{/each}} 
-              {{#each fields}}
-              {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
-                ...({{name}} && {
-                  {{name}}: {
-                    {{#if isList}}
-                    connect: {{name}}.map(({{relationToField}}: any) => ({
-                      {{relationToField}}
-                    })),
-                    {{/if}} 
-                  },
-                }),
-              {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
-                ...({{name}} && {
-                  {{name}}: {
-                    connect: {
-                      {{relationToField}}: {{name}},
-                    },
-                  },
-                }),
               {{/if}}
-              {{/each}}
+              } }),
+            {{/each}} 
+            {{#each fields}}
+            {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
+              ...({{name}} && {
+                {{name}}: {
+                  {{#if isList}}
+                  connect: {{name}}.map(({{relationToField}}: any) => ({
+                    {{relationToField}}
+                  })),
+                  {{/if}} 
+                },
+              }),
+            {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
+              ...({{name}} && {
+                {{name}}: {
+                  connect: {
+                    {{relationToField}}: {{name}},
+                  },
+                },
+              }),
+            {{/if}}
+            {{/each}}
             },
           })
         },
