@@ -160,7 +160,7 @@ class {{entityNameCap}}Services {
           if (
             data.{{name}} !== undefined &&
             typeof data.{{name}} == "string" && 
-            data.post_images?.length > 0
+            data.{{name}}?.length > 0
           ) {
             const image = await uploadImage({
               image: data.{{name}},
@@ -308,7 +308,7 @@ class {{entityNameCap}}Services {
           if (
             data.{{name}} !== undefined &&
             typeof data.{{name}} == "string" && 
-            data.post_images?.length > 0
+            data.{{name}}?.length > 0
           ) {
             const image = await uploadImage({
               image: data.{{name}},
