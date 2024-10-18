@@ -174,8 +174,7 @@ class {{entityNameCap}}Services {
             }
           }
           {{/if}}{{/each}}
-
-          {{#each fields}}{{#if (eq relType "m-m")}}
+          {{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
           let {{name}}: any[] = [];
           if (
             data.{{name}} &&
@@ -192,10 +191,10 @@ class {{entityNameCap}}Services {
               }
               {{name}}.push({{relationToField}});
             }
-          
           }
-        {{/if}}delete data.{{name}};
-        {{/each}}return await {{ entityNameCap }}.create({
+          delete data.{{name}}; 
+          {{/if}}
+          {{/each}}return await {{ entityNameCap }}.create({
           data: {
             ...data,
             {{#each imageFields}}
@@ -301,7 +300,7 @@ class {{entityNameCap}}Services {
           }
           {{/if}}{{/each}}
 
-          {{#each fields}}{{#if (eq relType "m-m")}}
+          {{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
           let {{name}}: any[] = [];
           if (
             data.{{name}} &&
@@ -318,9 +317,9 @@ class {{entityNameCap}}Services {
               }
               {{name}}.push({{relationToField}});
             }
-            
           }
-         {{/if}}delete data.{{name}};
+          delete data.{{name}}; 
+          {{/if}}
          {{/each}}return await {{entityNameCap}}.update({
             where: { {{idName}}: params.id {{#if (eq idType "number")}} as number, {{else}} as string, {{/if}} },
             data: {
