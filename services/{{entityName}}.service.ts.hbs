@@ -193,19 +193,12 @@ class {{entityNameCap}}Services {
             }
           }
           delete data.{{name}}; 
-          {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
-          let {{name}}: any = null;
+          {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
           if (
             data.{{name}} &&
             typeof data.{{name}} === "string"
           ) {
-            const findRel = await prisma.{{type}}.findUnique({
-              where: { {{relationToField}}: data.{{name}} },
-            });
-            if (!findRel) {
-              throw new ResponseError("{{name}} not found", 400);
-            }
-            {{name}} = data.{{name}};
+            {{relationFromField}} = data.{{name}};
           }
           delete data.{{name}};
           {{/if}}
@@ -238,15 +231,6 @@ class {{entityNameCap}}Services {
                     {{/if}} 
                   },
                 }),
-              {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
-              ...({{name}} && {
-                {{name}}: {
-                  {{#if isList}}
-                  connect: { {{relationToField}}: {{name}} },
-                  {{else}}connect: { {{relationToField}}: {{name}} },
-                  {{/if}} 
-                },
-              }),
               {{/if}}
               {{/each}}
             },
@@ -347,19 +331,12 @@ class {{entityNameCap}}Services {
             }
           }
           delete data.{{name}}; 
-          {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
-          let {{name}}: any = null;
+          {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
           if (
             data.{{name}} &&
             typeof data.{{name}} === "string"
           ) {
-            const findRel = await prisma.{{type}}.findUnique({
-              where: { {{relationToField}}: data.{{name}} },
-            });
-            if (!findRel) {
-              throw new ResponseError("{{name}} not found", 400);
-            }
-            {{name}} = data.{{name}};
+            {{relationFromField}} = data.{{name}};
           }
           delete data.{{name}};
           {{/if}}
@@ -400,15 +377,6 @@ class {{entityNameCap}}Services {
                     set: {{name}}.map(({{relationToField}}: any) => ({
                       {{relationToField}}
                     })),
-                    {{/if}} 
-                  },
-                }),
-                {{else if (or (eq relType "1-m") (eq relType "1-1"))}}
-                ...({{name}} && {
-                  {{name}}: {
-                    {{#if isList}}
-                    set: { {{relationToField}}: {{name}} },
-                    {{else}}set: { {{relationToField}}: {{name}} },
                     {{/if}} 
                   },
                 }),
