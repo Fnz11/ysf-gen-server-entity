@@ -205,7 +205,7 @@ class {{entityNameCap}}Services {
           delete data.{{name}};
           {{/if}}
           {{/each}}
-          
+
           return await {{ entityNameCap }}.create({
           data: {
             ...data,
@@ -366,9 +366,13 @@ class {{entityNameCap}}Services {
             prev_{{name}} = await Posts.findUnique({
               where: { {{../idName}}: params.id {{#if (eq ../idType "number")}} as number, {{else}} as string, {{/if}} },
               select: {
-                {{name}}: true,
+                {{name}}:  {
+                  select: {
+                    public_id: true,
+                  }
+                }
               },
-            });
+            }) {{#if isList}}.then((item) => item?.{{name}}){{/if}};
           }
           {{/each}}
 
@@ -417,14 +421,15 @@ class {{entityNameCap}}Services {
             {{#each imageFields}}
             {{#if isList}}
             if ({{name}}?.length > 0) {
-            {{else}}
-            if ({{name}}) {
-            {{/if}}
               await deleteImage(
                 prev_{{name}}?.{{name}}
                   .flatMap((img) => img.public_id)
                   .filter((id): id is string => id !== null) ?? []
               );
+            {{else}}
+            if ({{name}} && prev_{{name}}?.public_id) {
+              await deleteImage([prev_{{name}}?.public_id]);
+            {{/if}}
             }
             {{/each}}
             return res;
