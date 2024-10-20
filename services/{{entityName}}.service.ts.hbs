@@ -372,7 +372,7 @@ class {{entityNameCap}}Services {
                   }
                 }
               },
-            }) {{#if isList}}.then((item) => item?.{{name}}){{/if}};
+            }){{#unless isList}}.then((item) => item?.{{name}}){{/unless}};
           }
           {{/each}}
 
