@@ -202,9 +202,10 @@ class {{entityNameCap}}Services {
             {{name}} = data.{{name}};
           }
           delete data.{{relationFromField}}; 
-          {{/if}}
           delete data.{{name}};
+          {{/if}}
           {{/each}}
+          
           return await {{ entityNameCap }}.create({
           data: {
             ...data,
