@@ -16,8 +16,16 @@ import {
   handleGetById,
   handleMutate,
 } from "../utils/service.utils";
-import { deleteImage, uploadImage } from "../utils/cloudinary.utils";
-import { buildQueryConditions } from "../utils/query.utils";
+import {
+  deleteImage,
+  uploadImage,
+  uploadImageService,
+} from "../utils/cloudinary.utils";
+import {
+  buildImages,
+  buildQueryConditions,
+  fetchPrevImg,
+} from "../utils/query.utils";
 
 // ========== Init ==========
 
@@ -290,35 +298,17 @@ class {{entityNameCap}}Services {
           {{/if}}{{/each}}
 
           {{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
-          let {{name}}: any[] = [];
-          if (
-            data.{{name}} &&
-            Array.isArray(data.{{name}}) &&
-            data.{{name}}.length > 0 &&
-            data.{{name}}.every((item: unknown) => typeof item === "string")
-          ) {
-            for (const {{relationToField}} of data.{{name}}) {
-              const findRel = await prisma.{{type}}.findUnique({
-                where: { {{relationToField}} },
-              });
-              if (!findRel) {
-                throw new ResponseError("{{name}} not found", 400);
-              }
-              {{name}}.push({{relationToField}});
-            }
-          }
-          delete data.{{name}}; 
+          let {{name}}: any[] = await uploadImageService({
+            handleDelete: () => delete (data as any)?.{{name}},
+            images: data.{{name}},
+            type: "multiple",
+          });
           {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
-          let {{name}}: any = null;
-          if (
-            data.{{name}} &&
-            typeof data.{{name}} === "string"
-          ) {
-            {{name}} = data.{{name}};
-          }
-          delete data.{{relationFromField}}; 
-          delete data.{{name}};
-          {{/if}}
+          let {{name}}: any = await uploadImageService({
+            handleDelete: () => { delete (data as any)?.{{name}}; delete data.{{relationFromField}}; },
+            images: data.{{name}},
+            type: "single",
+          });
           {{/each}}
 
           {{#each imageFields}}
@@ -328,16 +318,11 @@ class {{entityNameCap}}Services {
           {{else}}
           if ({{name}}) {
             {{/if}}
-            prev_{{name}} = await {{../entityNameCap}}.findUnique({
-              where: { {{../idName}}: params.id {{#if (eq ../idType "number")}} as number, {{else}} as string, {{/if}} },
-              select: {
-                {{name}}:  {
-                  select: {
-                    public_id: true,
-                  }
-                }
-              },
-            }){{#unless isList}}.then((item) => item?.{{name}}){{/unless}};
+            prev_{{name}} = await fetchPrevImg(
+              Posts,
+              { post_id: params.id },
+              "{{name}}"
+            ); 
           }
           {{/each}}
 
@@ -346,19 +331,7 @@ class {{entityNameCap}}Services {
             data: {
               ...data,
               {{#each imageFields}}
-              ...({{name}} && {
-                {{name}}: {
-                  {{#if isList}}
-                  set: [],
-                  create: {{name}}.map((img: any) => ({
-                    url: img.url,
-                    public_id: img.public_id,
-                  })),
-                  {{else}}create: {
-                    url: {{name}}.url,
-                    public_id: {{name}}.public_id,
-                  },
-                  {{/if}} },
+              ...buildImages("{{name}}", {{name}}, {{#if isList}}"multiple"{{else}}"single"{{/if}}),
               }),
               {{/each}} 
               {{#each fields}}
