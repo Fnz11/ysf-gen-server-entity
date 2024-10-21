@@ -43,7 +43,7 @@ class {{entityNameCap}}Services {
     const query = buildQueryConditions({
       and: [{{#each fieldsFilter}}
         { 
-          name: "{{#if (startsWith key "min_")}} {{replace key "min_" ""}} {{else if (startsWith key "max_")}} {{replace key "max_" ""}}{{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else if (startsWith key "start_")}}{{replace key "end_" ""}}{{/if}}", value: {{key}}, type: "{{type}}", {{#if (or (startsWith key "min_") (startsWith key "start_"))}}gte: true,{{else if (or (startsWith key "min_") (startsWith key "end_"))}}lte: true,{{else if}} contains: true {{/if}} 
+          name: "{{#if (startsWith key "min_")}} {{replace key "min_" ""}} {{else if (startsWith key "max_")}} {{replace key "max_" ""}}{{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else if (startsWith key "start_")}}{{replace key "end_" ""}}{{/if}}", value: {{key}}, type: "{{type}}", {{#if (or (startsWith key "min_") (startsWith key "start_"))}}gte: true,{{else if (or (startsWith key "min_") (startsWith key "end_"))}}lte: true,{{else}} contains: true {{/if}} 
         },
         {{/each}} 
       ],
