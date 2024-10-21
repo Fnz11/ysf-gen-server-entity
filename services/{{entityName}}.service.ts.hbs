@@ -107,48 +107,20 @@ class {{entityNameCap}}Services {
       mutateService: async (params: { id?: string | number; data: any }) => {
           const { data } = params;
 
-          {{#each imageFields}}
-          {{#if isList}}
-          let {{name}}: any[] = [];
-           if (
-            data.{{name}} !== undefined &&
-            Array.isArray(data.{{name}}) &&
-            data.{{name}}.every((item: unknown) => typeof item === "string") &&
-            data.{{name}}.length > 0
-          ) {
-            for (const image of data.{{name}}) {
-              const uploadedImage = await uploadImage({
-                image: image,
-                folder: "{{name}}/image",
-              });
-              if (uploadedImage) {
-                {{name}}.push({
-                  url: uploadedImage.url,
-                  public_id: uploadedImage.public_id,
-                });
-              }
-            }
-            delete (data as any)?.{{name}};
-          }
-          {{else}}let {{name}}: any = null;
-          if (
-            data.{{name}} !== undefined &&
-            typeof data.{{name}} == "string" && 
-            data.{{name}}?.length > 0
-          ) {
-            const image = await uploadImage({
-              image: data.{{name}},
-              folder: "{{name}}/image",
-            });
-            if (image) {
-              {{name}} = {
-                url: image.url,
-                public_id: image.public_id,
-              };
-              delete (data as any)?.{{name}};
-            }
-          }
+           {{#each imageFields}}{{#if isList}}
+          let {{name}}: any[] = await uploadImageService({
+            handleDelete: () => delete (data as any)?.{{name}},
+            images: data.{{name}},
+            type: "multiple",
+          });
+          {{else}} 
+          let {{name}}: any = await uploadImageService({
+            handleDelete: () => { delete (data as any)?.{{name}}; delete data.{{relationFromField}}; },
+            images: data.{{name}},
+            type: "single",
+          });
           {{/if}}{{/each}}
+
           {{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
           let {{name}}: any[] = [];
           if (
@@ -184,19 +156,7 @@ class {{entityNameCap}}Services {
           data: {
             ...data,
             {{#each imageFields}}
-            ...({{name}} && {
-              {{name}}: {
-                {{#if isList}}
-                create: {{name}}.map((img: any) => ({
-                  url: img.url,
-                  public_id: img.public_id,
-                })),
-                {{else}}create: {
-                  url: {{name}}.url,
-                  public_id: {{name}}.public_id,
-                },
-              {{/if}}
-              } }),
+            ...buildImages("{{name}}", {{name}}, {{#if isList}}"multiple"{{else}}"single"{{/if}}),
             {{/each}} 
             {{#each fields}}
             {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
@@ -255,47 +215,18 @@ class {{entityNameCap}}Services {
       mutateService: async (params: { id?: string | number; data: any }) => {
           const { data } = params;
 
-          {{#each imageFields}}
-          {{#if isList}}
-          let {{name}}: any[] = [];
-           if (
-            data.{{name}} !== undefined &&
-            Array.isArray(data.{{name}}) &&
-            data.{{name}}.every((item: unknown) => typeof item === "string") &&
-            data.{{name}}.length > 0
-          ) {
-            for (const image of data.{{name}}) {
-              const uploadedImage = await uploadImage({
-                image: image,
-                folder: "{{name}}/image",
-              });
-              if (uploadedImage) {
-                {{name}}.push({
-                  url: uploadedImage.url,
-                  public_id: uploadedImage.public_id,
-                });
-              }
-            }
-            delete (data as any)?.{{name}};
-          }
-          {{else}}let {{name}}: any = null;
-          if (
-            data.{{name}} !== undefined &&
-            typeof data.{{name}} == "string" && 
-            data.{{name}}?.length > 0
-          ) {
-            const image = await uploadImage({
-              image: data.{{name}},
-              folder: "{{name}}/image",
-            });
-            if (image) {
-              {{name}} = {
-                url: image.url,
-                public_id: image.public_id,
-              };
-            }
-            delete (data as any)?.{{name}};
-          }
+          {{#each imageFields}}{{#if isList}}
+          let {{name}}: any[] = await uploadImageService({
+            handleDelete: () => delete (data as any)?.{{name}},
+            images: data.{{name}},
+            type: "multiple",
+          });
+          {{else}} 
+          let {{name}}: any = await uploadImageService({
+            handleDelete: () => { delete (data as any)?.{{name}}; delete data.{{relationFromField}}; },
+            images: data.{{name}},
+            type: "single",
+          });
           {{/if}}{{/each}}
 
           {{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
@@ -310,6 +241,35 @@ class {{entityNameCap}}Services {
             images: data.{{name}},
             type: "single",
           });
+          {{/if}}
+          {{/each}}{{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
+          let {{name}}: any[] = [];
+          if (
+            data.{{name}} &&
+            Array.isArray(data.{{name}}) &&
+            data.{{name}}.length > 0 &&
+            data.{{name}}.every((item: unknown) => typeof item === "string")
+          ) {
+            for (const {{relationToField}} of data.{{name}}) {
+              const findRel = await prisma.{{type}}.findUnique({
+                where: { {{relationToField}} },
+              });
+              if (!findRel) {
+                throw new ResponseError("{{name}} not found", 400);
+              }
+              {{name}}.push({{relationToField}});
+            }
+          } 
+          {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
+          let {{name}}: any = null;
+          if (
+            data.{{name}} &&
+            typeof data.{{name}} === "string"
+          ) {
+            {{name}} = data.{{name}};
+          }
+          delete data.{{relationFromField}}; 
+          delete data.{{name}};
           {{/if}}
           {{/each}}
 
