@@ -26,6 +26,7 @@ import {
   buildQueryConditions,
   fetchPrevImg,
 } from "../utils/query.utils";
+import { images } from "@prisma/client";
 
 // ========== Init ==========
 
@@ -361,7 +362,7 @@ class {{entityNameCap}}Services {
             if ({{name}}?.length > 0) {
               await deleteImage(
                 prev_{{name}}?.{{name}}
-                  .flatMap((img: string) => img.public_id)
+                  .flatMap((img: images) => img.public_id)
                   .filter((id: any) => id !== null) ?? []
               );
             {{else}}
