@@ -2,6 +2,7 @@
 import prisma from "../utils/prisma.utils";
 import ResponseError from "../error/response.error";
 import {
+  getAll{{entityNameCap}}Props,
   Mutate{{entityNameCap}}Props,
   mutate{{entityNameCap}}Schema,
 } from "../validators/{{entityName}}.validator";
@@ -16,6 +17,7 @@ import {
   handleMutate,
 } from "../utils/service.utils";
 import { deleteImage, uploadImage } from "../utils/cloudinary.utils";
+import { buildQueryConditions } from "../utils/query.utils";
 
 // ========== Init ==========
 
@@ -34,53 +36,19 @@ class {{entityNameCap}}Services {
     {{#if (eq type "unknown")}}{{else}}
     {{key}}, {{/if}}
     {{/each}} 
-  }: {
-    offset?: string | null;
-    limit?: string | null; 
-    {{idName}}_or?: string[] | null;
-    {{#each fieldsFilter}}
-    {{#if (eq type "unknown")}}{{else}}
-    {{key}}?: string | null;{{/if}}
-    {{/each}} 
-  }) { 
+  }: getAll{{entityNameCap}}Props) { 
     const pageOffset = offset ? parseInt(offset, 10) : 0;
     const pageLimit = limit ? parseInt(limit, 10) : 10;
 
-    const query: any = {};  
-
-    const andConditions = [];
-    const orConditions: any[] = [];
-
-    if ({{idName}}_or) {
-      {{idName}}_or?.map(({{idName}}) => {
-        orConditions.push({
-          {{idName}}: {
-            contains: {{idName}}{{#if (eq idType "number")}}.toString(){{/if}},
-          },
-        });
-      });
-    }
-
-    {{#each fieldsFilter}}
-    {{#if (eq type "unknown")}}{{else}}
-    // Check if '{{key}}' exists and add to AND conditions
-    if ({{key}}{{#if (eq type "number")}}&& !isNaN(parseInt({{ key }})){{/if}}) {
-      {{#if (eq type "number")}}andConditions.push({ {{#if (startsWith key "min_")}} {{replace key "min_" ""}}: { gte: parseInt({{key}}) } {{else if (startsWith key "max_")}} {{replace key "max_" ""}}: { lte: parseInt({{key}}) } {{else}} {{key}}: parseInt({{key}}) {{/if}} });
-      {{/if}}{{#if (eq type "boolean")}}andConditions.push({ {{key}}: {{key}} === "true" });
-      {{/if}}{{#if (eq type "Date")}}andConditions.push({ {{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else}}{{replace key "end_" ""}}{{/if}}: { {{#if (startsWith key "start_")}}gte{{else}}lte{{/if}}: new Date({{key}}) } });
-      {{/if}}{{#if (eq type "string")}}andConditions.push({ {{key}}: { contains: {{key}}?.toString()?.trim() } });
-      {{/if}}
-    } {{/if}}
-    {{/each}} 
-
-    // Add AND and OR conditions to query
-    if (andConditions?.length > 0) {
-      query.AND = andConditions;
-    } 
-    if (orConditions?.length > 0) {
-      query.OR = orConditions;
-    }
-    
+    const query = buildQueryConditions({
+      and: [{{#each fieldsFilter}}
+        { 
+          name: "{{#if (startsWith key "min_")}} {{replace key "min_" ""}} {{else if (startsWith key "max_")}} {{replace key "max_" ""}}{{#if (startsWith key "start_")}}{{replace key "start_" ""}}{{else if (startsWith key "start_")}}{{replace key "end_" ""}}{{/if}}", value: {{key}}, type: "{{type}}", {{#if (or (startsWith key "min_") (startsWith key "start_"))}}gte: true,{{else if (or (startsWith key "min_") (startsWith key "end_"))}}lte: true,{{else if}} contains: true {{/if}} 
+        },
+        {{/each}} 
+      ],
+      or: [],
+    });
 
     const totalData = await {{entityNameCap}}.count({
       where: query,

@@ -1,0 +1,11 @@
+
+
+export type getAll{{entityNameCap}}Props = {
+    offset?: string | null;
+    limit?: string | null; 
+    {{idName}}_or?: string[] | null;
+    {{#each fieldsFilter}}
+    {{#if (eq type "unknown")}}{{else}}
+    {{key}}?: string | null;{{/if}}
+    {{/each}} 
+  }
