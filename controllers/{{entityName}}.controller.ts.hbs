@@ -47,8 +47,7 @@ class {{entityNameCap}}Controller {
   }
 
   // CREATE BATCH
-  async createBatch(req: Request, res: Response, next: NextFunction) {
-    console.log("PAPAPAP", req.file, req.body);
+  async createBatch(req: Request, res: Response, next: NextFunction) { 
     if (!req.file) {
       return res.status(400).json({
         status: 400,
@@ -68,8 +67,7 @@ class {{entityNameCap}}Controller {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const data = req.body as Mutate{{entityNameCap}}SchemaProps;
-      console.log("weipfjiwejf", data);
+      const data = req.body as Mutate{{entityNameCap}}SchemaProps; 
 
       const result = await {{entityNameCap}}Services.update(id, data);
       res.status(result.status).json(result);
