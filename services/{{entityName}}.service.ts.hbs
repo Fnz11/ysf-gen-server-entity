@@ -333,7 +333,6 @@ class {{entityNameCap}}Services {
               ...data,
               {{#each imageFields}}
               ...buildImages("{{name}}", {{name}}, {{#if isList}}"multiple"{{else}}"single"{{/if}}),
-              }),
               {{/each}} 
               {{#each fields}}
                 {{#if (or (eq relType "m-m") (eq relType "m-1"))}}
@@ -362,8 +361,8 @@ class {{entityNameCap}}Services {
             if ({{name}}?.length > 0) {
               await deleteImage(
                 prev_{{name}}?.{{name}}
-                  .flatMap((img) => img.public_id)
-                  .filter((id): id is string => id !== null) ?? []
+                  .flatMap((img: string) => img.public_id)
+                  .filter((id: any) => id !== null) ?? []
               );
             {{else}}
             if ({{name}} && prev_{{name}}?.public_id) {
