@@ -31,21 +31,17 @@ class {{entityNameCap}}Services {
   static async getAll({
     offset, 
     limit, 
-    {{idName}}_or,
+    {{idName}}_or, 
     {{#each fieldsFilter}} 
     {{#if (eq type "unknown")}}{{else}}
-    {{key}}, {{/if}}
-    {{/each}} 
+    {{key}}, {{/if}}{{/each}} 
   }: getAll{{entityNameCap}}Props) { 
     const pageOffset = offset ? parseInt(offset, 10) : 0;
     const pageLimit = limit ? parseInt(limit, 10) : 10;
 
     const query = buildQueryConditions({
       and: [{{#each fieldsFilter}}
-        { 
-          name: "{{#if (startsWith key "min_")}}{{replace key "min_" ""}}{{else if (startsWith key "max_")}}{{replace key "max_" ""}}{{else if (startsWith key "start_")}}{{replace key "start_" ""}}{{else if (startsWith key "end_")}}{{replace key "end_" ""}}{{/if}}", value: {{key}}, type: "{{type}}", {{#if (or (startsWith key "min_") (startsWith key "start_"))}}gte: true,{{else if (or (startsWith key "min_") (startsWith key "end_"))}}lte: true,{{else}} contains: true {{/if}} 
-        },
-        {{/each}} 
+        { name: "{{#if (startsWith key "min_")}}{{replace key "min_" ""}}{{else if (startsWith key "max_")}}{{replace key "max_" ""}}{{else if (startsWith key "start_")}}{{replace key "start_" ""}}{{else if (startsWith key "end_")}}{{replace key "end_" ""}}{{/if}}", value: {{key}}, type: "{{type}}", {{#if (or (startsWith key "min_") (startsWith key "start_"))}}gte: true,{{else if (or (startsWith key "min_") (startsWith key "end_"))}}lte: true,{{else}} contains: true {{/if}} },{{/each}} 
       ],
       or: [],
     });
