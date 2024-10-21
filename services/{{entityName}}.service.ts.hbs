@@ -328,7 +328,7 @@ class {{entityNameCap}}Services {
           {{else}}
           if ({{name}}) {
             {{/if}}
-            prev_{{name}} = await {{entityNameCap}}.findUnique({
+            prev_{{name}} = await {{../entityNameCap}}.findUnique({
               where: { {{../idName}}: params.id {{#if (eq ../idType "number")}} as number, {{else}} as string, {{/if}} },
               select: {
                 {{name}}:  {
