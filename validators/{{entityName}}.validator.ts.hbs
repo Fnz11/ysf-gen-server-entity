@@ -1,5 +1,12 @@
+import { z } from "zod";
 
+// ==================== VALIDATION ====================
+// Create {{ entityNameCap }} Schema Validator
+{{{ zodValidator }}}
 
+// ==================== TYPES ====================
+
+export type Mutate{{ entityNameCap }}SchemaProps = z.infer<typeof mutate{{ entityNameCap }}Schema>;
 export type getAll{{entityNameCap}}Props = {
     offset?: string | null;
     limit?: string | null; 
