@@ -230,19 +230,6 @@ class {{entityNameCap}}Services {
           {{/if}}{{/each}}
 
           {{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
-          let {{name}}: any[] = await uploadImageService({
-            handleDelete: () => delete (data as any)?.{{name}},
-            images: data.{{name}},
-            type: "multiple",
-          });
-          {{else if (or (eq relType "1-m") (eq relType "1-1"))}} 
-          let {{name}}: any = await uploadImageService({
-            handleDelete: () => { delete (data as any)?.{{name}}; delete data.{{relationFromField}}; },
-            images: data.{{name}},
-            type: "single",
-          });
-          {{/if}}
-          {{/each}}{{#each fields}}{{#if (or (eq relType "m-m") (eq relType "m-1"))}}
           let {{name}}: any[] = [];
           if (
             data.{{name}} &&
