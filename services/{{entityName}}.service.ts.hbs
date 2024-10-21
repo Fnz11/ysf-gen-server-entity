@@ -3,7 +3,7 @@ import prisma from "../utils/prisma.utils";
 import ResponseError from "../error/response.error";
 import {
   getAll{{entityNameCap}}Props,
-  Mutate{{entityNameCap}}Props,
+  Mutate{{entityNameCap}}SchemaProps,
   mutate{{entityNameCap}}Schema,
 } from "../validators/{{entityName}}.validator";
 import * as XLSX from "xlsx";
@@ -88,7 +88,7 @@ class {{entityNameCap}}Services {
   }
 
   // CREATE
-  static async create(data: Mutate{{entityNameCap}}Props) {
+  static async create(data: Mutate{{entityNameCap}}SchemaProps) {
     return await handleMutate({
       data,
       name: this.NAME,
@@ -231,7 +231,7 @@ class {{entityNameCap}}Services {
   }
 
   // UPDATE
-  static async update(id: string, data: Mutate{{entityNameCap}}Props) {
+  static async update(id: string, data: Mutate{{entityNameCap}}SchemaProps) {
     return await handleMutate({
       data,
       id: {{#if (eq idType "number")}}parseInt(id){{else}}id{{/if}},

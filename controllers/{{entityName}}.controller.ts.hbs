@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response } from "express";
 import {{entityNameCap}}Services from "../services/{{entityName}}.service";
 import { ResponseProps } from "../types/general.types";
-import { Mutate{{entityNameCap}}Props } from "../validators/{{entityName}}.validator";
+import { Mutate{{entityNameCap}}SchemaProps } from "../validators/{{entityName}}.validator";
 
 // ========== Controllers ==========
 class {{entityNameCap}}Controller {
@@ -42,7 +42,7 @@ class {{entityNameCap}}Controller {
   // CREATE
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = req.body as Mutate{{entityNameCap}}Props;
+      const data = req.body as Mutate{{entityNameCap}}SchemaProps;
       const result = await {{entityNameCap}}Services.create(data);
       res.status(result.status).json(result);
     } catch (error) {
@@ -72,7 +72,7 @@ class {{entityNameCap}}Controller {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const data = req.body as Mutate{{entityNameCap}}Props;
+      const data = req.body as Mutate{{entityNameCap}}SchemaProps;
       console.log("weipfjiwejf", data);
 
       const result = await {{entityNameCap}}Services.update(id, data);
