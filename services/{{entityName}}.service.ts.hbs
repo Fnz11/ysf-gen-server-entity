@@ -115,7 +115,7 @@ class {{entityNameCap}}Services {
           });
           {{else}} 
           let {{name}}: any = await uploadImageService({
-            handleDelete: () => { delete (data as any)?.{{name}}; delete data.{{relationFromField}}; },
+            handleDelete: () => { delete (data as any)?.{{name}}; {{#if relationFromField}} delete data.{{relationFromField}};{{/if}} },
             images: data.{{name}},
             type: "single",
           });
@@ -223,7 +223,7 @@ class {{entityNameCap}}Services {
           });
           {{else}} 
           let {{name}}: any = await uploadImageService({
-            handleDelete: () => { delete (data as any)?.{{name}}; delete data.{{relationFromField}}; },
+            handleDelete: () => { delete (data as any)?.{{name}}; {{#if relationFromField}} delete data.{{relationFromField}};{{/if}} },
             images: data.{{name}},
             type: "single",
           });
@@ -268,8 +268,8 @@ class {{entityNameCap}}Services {
           if ({{name}}) {
             {{/if}}
             prev_{{name}} = await fetchPrevImg(
-              Posts,
-              { post_id: params.id },
+              {{entityNameCap}},
+              { {{idName}}: params.id },
               "{{name}}"
             ); 
           }
