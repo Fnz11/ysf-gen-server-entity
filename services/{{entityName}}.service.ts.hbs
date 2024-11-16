@@ -268,8 +268,8 @@ class {{entityNameCap}}Services {
           if ({{name}}) {
             {{/if}}
             prev_{{name}} = await fetchPrevImg(
-              {{entityNameCap}},
-              { {{idName}}: params.id },
+              {{../entityNameCap}},
+              { {{../idName}}: params.id },
               "{{name}}"
             ); 
           }
